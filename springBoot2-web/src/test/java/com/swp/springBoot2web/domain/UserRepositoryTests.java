@@ -29,15 +29,18 @@ public class UserRepositoryTests {
 
     @Test
     public void test(){
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG);
-        Date date = new Date();
-        String formattedDate = dateFormat.format(date);
+//        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG);
+//        Date date = new Date();
+//        String formattedDate = dateFormat.format(date);
 
 //        userRepository.save(new User("dd","dd123456","dd@123.com","dd1",formattedDate));
 //        userRepository.save(new User("bb","bb123456","bb@123.com","bb1",formattedDate));
 //        userRepository.save(new User("cc","cc123456","cc@123.com","cc1",formattedDate));
 
-        userRepository.delete(userRepository.findByUserName("aa"));
+//        userRepository.delete(userRepository.findByUserName("bb"));
+
+        User user = userRepository.findByUserName("bb");
+        System.out.println(user.getUserName());
 
     }
 
