@@ -1,5 +1,6 @@
 package com.swp.springBoot1.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,9 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
 
-    @RequestMapping("/hello")
+    @RequestMapping("/index")
     public String index(){
-        return "Hello World";
+        System.out.println("Hello World11");
+        return "Hello World1111";
     }
 
 }
