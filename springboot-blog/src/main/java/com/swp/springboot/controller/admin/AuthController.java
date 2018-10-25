@@ -1,0 +1,66 @@
+package com.swp.springboot.controller.admin;
+
+import com.swp.springboot.constant.WebConst;
+import com.swp.springboot.controller.AbstractController;
+import com.swp.springboot.exception.TipException;
+import com.swp.springboot.modal.bo.RestResponseBo;
+import com.swp.springboot.modal.vo.UserVo;
+import com.swp.springboot.service.IUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * 描述:
+ * 登录控制器
+ *
+ * @version 1.0.0
+ * @outhor ios
+ * @create 2018-10-25 2:55 PM
+ */
+@Controller
+@RequestMapping("/admin")
+@Transactional(rollbackFor = TipException.class)
+public class AuthController extends AbstractController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
+    @Resource
+    private IUserService userService;
+
+    @GetMapping("/login")
+    public String login(){
+        return "admin/login";
+    }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public RestResponseBo doLogin(@RequestParam String username,
+                                  @RequestParam String password,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
+        Integer errorCount = cache.get(WebConst.LOGIN_ERROR_COUNT);
+
+        try {
+            UserVo userVo = userService.login(username, password);
+            request.getSession().setAttribute(WebConst.LOGIN_SESSION_KEY,userVo);
+            // 设置12小时的cookie
+        } catch (Exception e) {
+            errorCount = null == errorCount ? 1 : errorCount + 1;
+            if (errorCount > 3) {
+                return RestResponseBo.fail("您输入密码已经错误超过3次，请10分钟后尝试");
+            }
+            cache.set(WebConst.LOGIN_ERROR_COUNT,errorCount,10 * 60);
+
+        }
+        return RestResponseBo.ok();
+    }
+
+
+}
