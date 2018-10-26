@@ -2,10 +2,14 @@ package com.swp.springboot.controller.admin;
 
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.controller.AbstractController;
+import com.swp.springboot.controller.helper.ExceptionHelper;
+import com.swp.springboot.dto.LogActions;
 import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.bo.RestResponseBo;
 import com.swp.springboot.modal.vo.UserVo;
+import com.swp.springboot.service.ILogService;
 import com.swp.springboot.service.IUserService;
+import com.swp.springboot.util.MyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -34,6 +38,9 @@ public class AuthController extends AbstractController {
     @Resource
     private IUserService userService;
 
+    @Resource
+    private ILogService logService;
+
     @GetMapping("/login")
     public String login(){
         return "admin/login";
@@ -51,13 +58,16 @@ public class AuthController extends AbstractController {
             UserVo userVo = userService.login(username, password);
             request.getSession().setAttribute(WebConst.LOGIN_SESSION_KEY,userVo);
             // 设置12小时的cookie
+            MyUtils.setCookie(response,userVo.getUid());
+            logService.insertLog(LogActions.LOGIN.getAction(),null,userVo.getUid(),request.getRemoteAddr());
         } catch (Exception e) {
             errorCount = null == errorCount ? 1 : errorCount + 1;
             if (errorCount > 3) {
                 return RestResponseBo.fail("您输入密码已经错误超过3次，请10分钟后尝试");
             }
             cache.set(WebConst.LOGIN_ERROR_COUNT,errorCount,10 * 60);
-
+            String msg = "登录失败";
+            return ExceptionHelper.handlerException(logger, msg, e);
         }
         return RestResponseBo.ok();
     }

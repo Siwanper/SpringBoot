@@ -7,6 +7,7 @@ import com.swp.springboot.modal.vo.UserVoExample;
 import com.swp.springboot.service.IUserService;
 import com.swp.springboot.util.MyUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
  * @outhor ios
  * @create 2018-10-25 4:48 PM
  */
+@Service
 public class UserServiceImpl implements IUserService {
 
     @Resource

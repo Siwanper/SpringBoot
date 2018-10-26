@@ -7,12 +7,13 @@ spring:
     active: jdbc,log
 
   thymeleaf:
-    cache: false
-    prefix: classpath:/templates/
-    suffix: .html
-    check-template-location: true
-    encoding: UTF-8
-    mode: HTML5
+      prefix: classpath:/templates/
+      check-template-location: true
+      suffix: .html
+      encoding: UTF-8
+      mode: HTML5
+      cache: false
+      content-type: text/html
 
 mybatis:
   mapper-locations: classpath:/mapper/*.xml

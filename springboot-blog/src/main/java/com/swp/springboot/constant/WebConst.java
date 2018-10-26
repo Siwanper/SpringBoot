@@ -13,4 +13,6 @@ public class WebConst {
     public static final String LOGIN_SESSION_KEY = "login_user";
     public static final String LOGIN_ERROR_COUNT = "login_error_count";
 
+    public static final String AES_SALT = "0123456789abcdef";
+    public static final String USER_IN_COOKIE = "S_L_ID";
 }
