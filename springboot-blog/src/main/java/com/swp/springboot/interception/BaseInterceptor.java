@@ -49,12 +49,15 @@ public class BaseInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // TODO CSRF 处理
+
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-
+        // TODO IP黑名单
+        // TODO 统一链接处理
     }
 
     @Override

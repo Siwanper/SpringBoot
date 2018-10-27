@@ -86,7 +86,6 @@ public class MyUtils {
         }
     }
 
-
     public static Integer getCookieUid(HttpServletRequest request) {
         if (null != request) {
             Cookie cookie = cookieRaw(WebConst.USER_IN_COOKIE, request);

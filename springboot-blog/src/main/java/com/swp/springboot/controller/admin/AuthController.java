@@ -17,8 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
 
 /**
  * 描述:
@@ -70,6 +73,20 @@ public class AuthController extends AbstractController {
             return ExceptionHelper.handlerException(logger, msg, e);
         }
         return RestResponseBo.ok();
+    }
+
+    @RequestMapping("/logout")
+    public void logout(HttpSession session, HttpServletRequest request, HttpServletResponse response){
+        session.removeAttribute(WebConst.LOGIN_SESSION_KEY);
+        Cookie cookie = new Cookie(WebConst.USER_IN_COOKIE, null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        try {
+            response.sendRedirect("/admin/login");
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.error("注销失败", e);
+        }
     }
 
 

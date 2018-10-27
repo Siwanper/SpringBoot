@@ -55,7 +55,7 @@
             <property name="enableSubPackages" value="false" />
         </javaClientGenerator>
 
-        <table domainObjectName="LogVo" tableName="t_logs" />
+        <table domainObjectName="RelationshipVo" tableName="t_relationships" />
 
     </context>
 </generatorConfiguration>
