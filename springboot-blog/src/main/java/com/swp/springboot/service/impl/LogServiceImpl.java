@@ -1,13 +1,17 @@
 package com.swp.springboot.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.dao.LogVoMapper;
 import com.swp.springboot.modal.vo.LogVo;
+import com.swp.springboot.modal.vo.LogVoExample;
 import com.swp.springboot.service.ILogService;
 import com.swp.springboot.util.DateKit;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 描述:
@@ -32,5 +36,19 @@ public class LogServiceImpl implements ILogService {
         logVo.setIp(ip);
         logVo.setCreated(DateKit.getCurrentUnixTime());
         mapper.insert(logVo);
+    }
+
+    @Override
+    public List<LogVo> getLogs(int page, int limit) {
+        if (page <= 0) {
+            page = 1;
+        }
+        if (limit < 1 || limit > WebConst.MAX_POST_NUMBER) {
+            limit = 10;
+        }
+        LogVoExample example = new LogVoExample();
+        PageHelper.startPage((page - 1) * limit, limit);
+        List<LogVo> logVos = mapper.selectByExample(example);
+        return logVos;
     }
 }

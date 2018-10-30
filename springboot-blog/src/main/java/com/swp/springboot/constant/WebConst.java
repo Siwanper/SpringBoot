@@ -1,5 +1,8 @@
 package com.swp.springboot.constant;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 描述:
  * 常量
@@ -10,9 +13,15 @@ package com.swp.springboot.constant;
  */
 public class WebConst {
 
+    public static Map<String, String> initConfig = new HashMap<>();
+
     public static final String LOGIN_SESSION_KEY = "login_user";
     public static final String LOGIN_ERROR_COUNT = "login_error_count";
 
     public static final String AES_SALT = "0123456789abcdef";
     public static final String USER_IN_COOKIE = "S_L_ID";
+
+
+
+    public static final int MAX_POST_NUMBER = 9999;
 }

@@ -47,4 +47,15 @@ public class UserServiceImpl implements IUserService {
         }
         return userVoList.get(0);
     }
+
+    @Override
+    public void updateByUid(UserVo userVo) {
+        if (null == userVo || null == userVo.getUid()) {
+            throw new TipException("userVo is null");
+        }
+        int i = mapper.updateByPrimaryKeySelective(userVo);
+        if (i != 1) {
+            throw new TipException("update user info failure");
+        }
+    }
 }
