@@ -3,11 +3,15 @@ package com.swp.springboot.service.impl;
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.dao.MetaVoMapper;
 import com.swp.springboot.dto.MetaDto;
+import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
+import com.swp.springboot.modal.vo.ContentVo;
 import com.swp.springboot.modal.vo.MetaVo;
 import com.swp.springboot.modal.vo.MetaVoExample;
+import com.swp.springboot.modal.vo.RelationshipVoKey;
 import com.swp.springboot.service.IContentService;
 import com.swp.springboot.service.IMetaService;
+import com.swp.springboot.service.IRelationshipService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +33,9 @@ public class MetaServiceImpl implements IMetaService {
 
     @Resource
     private IContentService contentService;
+
+    @Resource
+    private IRelationshipService relationshipService;
 
     @Resource
     private MetaVoMapper metaVoMapper;
@@ -81,5 +88,52 @@ public class MetaServiceImpl implements IMetaService {
             return metaVoMapper.selectFromSql(map);
         }
         return null;
+    }
+
+    @Override
+    public void delete(Integer mid) {
+
+        MetaVo metaVo = metaVoMapper.selectByPrimaryKey(mid);
+
+        String type = metaVo.getType();
+        String name = metaVo.getName();
+
+        int i = metaVoMapper.deleteByPrimaryKey(mid);
+        if (i != 1) {
+            throw new TipException("删除失败");
+        }
+        List<RelationshipVoKey> relationshipVoKeys = relationshipService.getRelationshioListById(null, mid);
+        if (null != relationshipVoKeys) {
+            for (RelationshipVoKey relationShip : relationshipVoKeys) {
+                ContentVo content = contentService.getContentByCid(relationShip.getCid());
+                if (null != content) {
+                    ContentVo temp = new ContentVo();
+                    temp.setCid(content.getCid());
+                    if (type.equals(Types.CATEGORY.getType())){
+                        temp.setCategories(reMeta(name, content.getCategories()));
+                    }
+                    if (type.equals(Types.TAG.getType())){
+                        temp.setTags(reMeta(name, content.getTags()));
+                    }
+                    contentService.updateByCid(temp);
+                }
+            }
+            relationshipService.deleteById(null,mid);
+        }
+
+    }
+
+    public String reMeta(String name, String metaString){
+        String[] metas = metaString.split(",");
+        StringBuffer stringBuffer = new StringBuffer();
+        for (String meta : metas) {
+            if (!name.equals(meta)) {
+                stringBuffer.append(",").append(meta);
+            }
+        }
+        if (stringBuffer.length() > 0){
+            return stringBuffer.substring(1);
+        }
+        return "";
     }
 }

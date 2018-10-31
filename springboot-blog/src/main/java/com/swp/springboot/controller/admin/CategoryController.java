@@ -61,7 +61,20 @@ public class CategoryController extends AbstractController {
         return RestResponseBo.ok();
     }
 
+    @RequestMapping("/delete")
+    @ResponseBody
+    @Transactional(rollbackFor = TipException.class)
+    public RestResponseBo delete(@RequestParam Integer mid) {
 
+        try {
+            metaService.delete(mid);
+        } catch (Exception e) {
+            return ExceptionHelper.handlerException(logger, "删除失败", e);
+        }
+
+        return RestResponseBo.ok();
+
+    }
 
 
 }

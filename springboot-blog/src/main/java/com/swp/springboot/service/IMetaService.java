@@ -25,4 +25,10 @@ public interface IMetaService {
      */
     List<MetaDto> getMetaList(String type, String order, int limit);
 
+    /**
+     * 删除分类或标签
+     *
+     * @param mid
+     */
+    void delete(Integer mid);
 }
