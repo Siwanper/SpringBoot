@@ -12,5 +12,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AdminCommons {
+    private static final String[] COLORS = {"jantent", "primary", "success", "info", "warning", "danger", "inverse", "purple", "pink"};
 
+    public static String rand_color() {
+        int r = Tools.rand(0, COLORS.length - 1);
+        return COLORS[r];
+    }
 }

@@ -240,4 +240,14 @@
       parent = #{parent,jdbcType=INTEGER}
     where mid = #{mid,jdbcType=INTEGER}
   </update>
+
+  <resultMap id="MetaDtoMap" type="com.swp.springboot.dto.MetaDto" extends="BaseResultMap">
+      <result column="count" property="count" jdbcType="INTEGER" />
+  </resultMap>
+
+  <select id="selectFromSql" parameterType="Map" resultMap="MetaDtoMap">
+    SELECT a.*, COUNT(b.cid) as count FROM t_metas a LEFT JOIN t_relationships b ON a.mid=b.mid where a.type=#{type} GROUP BY a.mid ORDER BY #{order} limit #{limit};
+  </select>
+
+
 </mapper>

@@ -5,6 +5,7 @@ import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Random;
 
 /**
  * 描述:
@@ -15,7 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @create 2018-10-26 9:32 AM
  */
 public class Tools {
-
+    private static final Random random = new Random();
     /**
      * AES 对称加密解密
      * @param data
@@ -54,5 +55,9 @@ public class Tools {
         }
 
         return false;
+    }
+
+    public static int rand(int min, int max) {
+        return random.nextInt(max) % (max - min + 1) + min;
     }
 }
