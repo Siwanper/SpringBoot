@@ -101,7 +101,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.swp.springboot.modal.vo.MetaVo">
+  <insert id="insert" parameterType="com.swp.springboot.modal.vo.MetaVo" useGeneratedKeys="true" keyProperty="mid">
     insert into t_metas (mid, name, slug, 
       type, description, sort, 
       parent)
@@ -109,7 +109,7 @@
       #{type,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, 
       #{parent,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.swp.springboot.modal.vo.MetaVo">
+  <insert id="insertSelective" parameterType="com.swp.springboot.modal.vo.MetaVo" useGeneratedKeys="true" keyProperty="mid">
     insert into t_metas
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="mid != null">

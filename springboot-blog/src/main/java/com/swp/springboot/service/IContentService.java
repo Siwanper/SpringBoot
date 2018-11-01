@@ -37,6 +37,9 @@ public interface IContentService {
      */
     void updateByCid(ContentVo contentVo);
 
-
-
+    /**
+     * 发表文章
+     * @param contentVo
+     */
+    void publish(ContentVo contentVo);
 }

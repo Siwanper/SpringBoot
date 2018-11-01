@@ -4,7 +4,9 @@ import com.swp.springboot.modal.vo.ContentVo;
 import com.swp.springboot.modal.vo.ContentVoExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Component;
 
+@Component
 public interface ContentVoMapper {
     long countByExample(ContentVoExample example);
 

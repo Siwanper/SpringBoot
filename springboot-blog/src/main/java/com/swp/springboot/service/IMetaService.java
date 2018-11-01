@@ -1,10 +1,20 @@
 package com.swp.springboot.service;
 
 import com.swp.springboot.dto.MetaDto;
+import com.swp.springboot.modal.vo.MetaVo;
 
 import java.util.List;
 
 public interface IMetaService {
+
+    /**
+     * 保存多条分类和标签
+     *
+     * @param type
+     * @param names
+     * @param cid
+     */
+    void saveMetas(String type, String names, Integer cid);
 
     /**
      *  保存分类和标签
@@ -24,6 +34,14 @@ public interface IMetaService {
      * @return
      */
     List<MetaDto> getMetaList(String type, String order, int limit);
+
+    /**
+     * 根据类型获取分类和标签
+     *
+     * @param type
+     * @return
+     */
+    List<MetaVo> getMetaByType(String type);
 
     /**
      * 删除分类或标签

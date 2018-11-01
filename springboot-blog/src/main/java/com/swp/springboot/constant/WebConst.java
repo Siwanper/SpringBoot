@@ -21,7 +21,10 @@ public class WebConst {
     public static final String AES_SALT = "0123456789abcdef";
     public static final String USER_IN_COOKIE = "S_L_ID";
 
-
+    /**
+     * 点击次数超过多少更新到数据库
+     */
+    public static final int HIT_EXCEED = 10;
 
     public static final int MAX_POST_NUMBER = 9999;
 }

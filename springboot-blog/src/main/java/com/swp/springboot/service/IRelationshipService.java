@@ -31,4 +31,8 @@ public interface IRelationshipService {
      * @param mid
      */
     void deleteById(Integer cid, Integer mid);
+
+    Long countById(Integer cid, Integer mid);
+
+    void insertVo(RelationshipVoKey relationshipVoKey);
 }

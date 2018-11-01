@@ -51,4 +51,25 @@ public class RelationshipServiceImpl implements IRelationshipService {
         }
         mapper.deleteByExample(example);
     }
+
+    @Override
+    public Long countById(Integer cid, Integer mid) {
+        RelationshipVoExample example = new RelationshipVoExample();
+        RelationshipVoExample.Criteria criteria = example.createCriteria();
+        if (null != cid) {
+            criteria.andCidEqualTo(cid);
+        }
+        if (null != mid) {
+            criteria.andCidEqualTo(mid);
+        }
+        long count = mapper.countByExample(example);
+        return count;
+    }
+
+    @Override
+    public void insertVo(RelationshipVoKey relationshipVoKey) {
+        if ( null != relationshipVoKey) {
+            mapper.insert(relationshipVoKey);
+        }
+    }
 }

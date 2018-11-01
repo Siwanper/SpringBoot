@@ -41,6 +41,54 @@ public class MetaServiceImpl implements IMetaService {
     private MetaVoMapper metaVoMapper;
 
     @Override
+    public void saveMetas(String type, String names, Integer cid) {
+        if (null == cid) {
+            throw new TipException("项目关联id不能为空");
+        }
+        if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(names)) {
+            String[] nameArr = StringUtils.split(names, ",");
+            for (String n : nameArr) {
+                this.saveOrUpdate(n, type, cid);
+            }
+        } else {
+            throw new TipException("类型或名称不能为空");
+        }
+    }
+
+    private void saveOrUpdate(String name, String type, Integer cid) {
+        MetaVoExample example = new MetaVoExample();
+        example.createCriteria().andTypeEqualTo(type).andNameEqualTo(name);
+        List<MetaVo> metaVos = metaVoMapper.selectByExample(example);
+
+        int mid;
+        MetaVo metaVo;
+        if (metaVos.size() == 1) {
+            metaVo = metaVos.get(0);
+            mid = metaVo.getMid();
+        } else if (metaVos.size() > 1) {
+            throw new TipException("查询到多条相同数据");
+        } else {
+            metaVo = new MetaVo();
+            metaVo.setType(type);
+            metaVo.setName(name);
+            metaVo.setSlug(name);
+            metaVoMapper.insert(metaVo);
+            mid = metaVo.getMid();
+        }
+
+        if (mid != 0) {
+            Long count = relationshipService.countById(cid, mid);
+            if (count == 0) {
+                RelationshipVoKey relationshipVoKey = new RelationshipVoKey();
+                relationshipVoKey.setCid(cid);
+                relationshipVoKey.setMid(mid);
+                relationshipService.insertVo(relationshipVoKey);
+            }
+        }
+
+    }
+
+    @Override
     public void saveMeta(String type, String name, Integer mid) {
         if (StringUtils.isBlank(type)) {
             throw new TipException("类型不能为空");
@@ -86,6 +134,17 @@ public class MetaServiceImpl implements IMetaService {
             map.put("order", order);
             map.put("limit", limit);
             return metaVoMapper.selectFromSql(map);
+        }
+        return null;
+    }
+
+    @Override
+    public List<MetaVo> getMetaByType(String type) {
+        if (null != type) {
+            MetaVoExample example = new MetaVoExample();
+            example.createCriteria().andTypeEqualTo(type);
+            List<MetaVo> metaVos = metaVoMapper.selectByExample(example);
+            return metaVos;
         }
         return null;
     }

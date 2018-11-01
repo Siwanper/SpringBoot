@@ -3,6 +3,13 @@ package com.swp.springboot.util;
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.modal.vo.UserVo;
 import org.apache.commons.lang3.StringUtils;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.node.Link;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.AttributeProvider;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +20,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 描述:
@@ -23,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class MyUtils {
 
+    private static final Pattern SLUG_REGEX = Pattern.compile("^[A-Za-z0-9_-]{5,100}$", Pattern.CASE_INSENSITIVE);
     /**
      * 获取登录的用户
      *
@@ -127,5 +140,46 @@ public class MyUtils {
         File file = new File("");
         return file.getAbsolutePath() + "/";
 
+    }
+
+    public static boolean isSlugPath(String slug){
+        if (StringUtils.isNotBlank(slug)) {
+            if (slug.contains("/") || slug.contains(" ") || slug.contains(".")) {
+                return false;
+            }
+            Matcher matcher = SLUG_REGEX.matcher(slug);
+            return matcher.find();
+        }
+        return false;
+    }
+
+    /**
+     * markdown转换为html
+     *
+     * @param markdown
+     * @return
+     */
+    public static String mdToHtml(String markdown) {
+        if (StringUtils.isBlank(markdown)) {
+            return "";
+        }
+        List<Extension> extensions = Arrays.asList(TablesExtension.create());
+        Parser parser     = Parser.builder().extensions(extensions).build();
+        Node document = parser.parse(markdown);
+        HtmlRenderer renderer = HtmlRenderer.builder()
+                .attributeProviderFactory(context -> new LinkAttributeProvider())
+                .extensions(extensions).build();
+        String content = renderer.render(document);
+        content = Commons.emoji(content);
+        return content;
+    }
+
+    static class LinkAttributeProvider implements AttributeProvider {
+        @Override
+        public void setAttributes(Node node, String tagName, Map<String, String> attributes) {
+            if (node instanceof Link) {
+                attributes.put("target", "_blank");
+            }
+        }
     }
 }
