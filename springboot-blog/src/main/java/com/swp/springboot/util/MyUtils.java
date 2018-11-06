@@ -11,18 +11,21 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -127,6 +130,22 @@ public class MyUtils {
         return null;
     }
 
+    public static boolean isSlugPath(String slug){
+        if (StringUtils.isNotBlank(slug)) {
+            if (slug.contains("/") || slug.contains(" ") || slug.contains(".")) {
+                return false;
+            }
+            Matcher matcher = SLUG_REGEX.matcher(slug);
+            return matcher.find();
+        }
+        return false;
+    }
+
+    /**
+     * 文件上传根目录
+     *
+     * @return
+     */
     public static String getUploadFilePath() {
         String path = MyUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         path = path.substring(1, path.length());
@@ -139,18 +158,32 @@ public class MyUtils {
         path = path.substring(0, lastIndex);
         File file = new File("");
         return file.getAbsolutePath() + "/";
-
     }
 
-    public static boolean isSlugPath(String slug){
-        if (StringUtils.isNotBlank(slug)) {
-            if (slug.contains("/") || slug.contains(" ") || slug.contains(".")) {
-                return false;
-            }
-            Matcher matcher = SLUG_REGEX.matcher(slug);
-            return matcher.find();
+    /**
+     * 文件的相对路径
+     *
+     * @param name
+     * @return
+     */
+    public static String getFileKey(String name) {
+        String prefix = "/upload/" + DateKit.dateFormat(new Date(), "yyyy/MM");
+        if (!new File(getUploadFilePath() + prefix).exists()) {
+            new File(getUploadFilePath() + prefix).mkdirs();
         }
-        return false;
+        name = StringUtils.trimToNull(name);
+        if (null == name) {
+            return prefix + "/" + UUID.UU32() + "." + null;
+        } else {
+            name = name.replace("\\", "/");
+            name = name.substring(name.lastIndexOf("/") + 1);
+            int index = name.lastIndexOf(".");
+            String ext = null;
+            if (index >= 0) {
+                ext = StringUtils.trimToNull(name.substring(index + 1));
+            }
+            return prefix + "/" + UUID.UU32() + "." + (ext == null ? null : ext);
+        }
     }
 
     /**
@@ -182,4 +215,24 @@ public class MyUtils {
             }
         }
     }
+
+    /**
+     * 判断文件是否为图片
+     * @param stream
+     * @return
+     */
+    public static boolean isImage(InputStream stream) {
+        try {
+            Image image = ImageIO.read(stream);
+            if (null == image || image.getWidth(null) <= 0 || image.getHeight(null) <= 0) {
+                return false;
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return true;
+        }
+
+    }
+
 }

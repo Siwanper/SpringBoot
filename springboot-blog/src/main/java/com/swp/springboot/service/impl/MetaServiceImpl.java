@@ -164,7 +164,7 @@ public class MetaServiceImpl implements IMetaService {
         List<RelationshipVoKey> relationshipVoKeys = relationshipService.getRelationshioListById(null, mid);
         if (null != relationshipVoKeys) {
             for (RelationshipVoKey relationShip : relationshipVoKeys) {
-                ContentVo content = contentService.getContentByCid(relationShip.getCid());
+                ContentVo content = contentService.getContentByCid(relationShip.getCid()+"");
                 if (null != content) {
                     ContentVo temp = new ContentVo();
                     temp.setCid(content.getCid());

@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.controller.AbstractController;
 import com.swp.springboot.controller.helper.ExceptionHelper;
+import com.swp.springboot.dto.LogActions;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.bo.RestResponseBo;
@@ -12,6 +13,7 @@ import com.swp.springboot.modal.vo.ContentVoExample;
 import com.swp.springboot.modal.vo.MetaVo;
 import com.swp.springboot.modal.vo.UserVo;
 import com.swp.springboot.service.IContentService;
+import com.swp.springboot.service.ILogService;
 import com.swp.springboot.service.IMetaService;
 import com.swp.springboot.util.Commons;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +48,9 @@ public class ArticleController extends AbstractController {
 
     @Resource
     private IMetaService metaService;
+
+    @Resource
+    private ILogService logService;
     /**
      * 文章列表页面
      *
@@ -102,5 +107,56 @@ public class ArticleController extends AbstractController {
         }
         return RestResponseBo.ok();
     }
+
+    /**
+     * 文章编辑页面
+     * @param request
+     * @param cid
+     * @return
+     */
+    @RequestMapping(value = "/{cid}")
+    @Transactional(rollbackFor = TipException.class)
+    public String editArticle(HttpServletRequest request,@PathVariable String cid) {
+        ContentVo content = contentService.getContentByCid(cid);
+        request.setAttribute("contents",content);
+        List<MetaVo> metaVos = metaService.getMetaByType(Types.CATEGORY.getType());
+        request.setAttribute("categories", metaVos);
+        request.setAttribute(Types.ATTACH_URL.getType(), Commons.site_option(Types.ATTACH_URL.getType()));
+        request.setAttribute("active","article");
+        return "admin/article_edit";
+    }
+
+    /**
+     * 编辑文章
+     * @param request
+     * @param contents
+     * @return
+     */
+    @PostMapping("/modify")
+    @ResponseBody
+    @Transactional(rollbackFor = TipException.class)
+    public RestResponseBo modifyArticle(HttpServletRequest request ,ContentVo contents){
+        UserVo user = this.user(request);
+        contents.setAuthorId(user.getUid());
+        contents.setType(Types.ARTICLE.getType());
+        contentService.updateArticle(contents);
+        return RestResponseBo.ok();
+    }
+
+    @PostMapping("/delete")
+    @ResponseBody
+    @Transactional(rollbackFor = TipException.class)
+    public RestResponseBo deleteArticle(@RequestParam Integer cid, HttpServletRequest request) {
+
+        try {
+            contentService.deleteArticleById(cid);
+            logService.insertLog(LogActions.DEL_ARTICLE.getAction(), cid + "", this.getUid(request), request.getRemoteAddr());
+        } catch (Exception e) {
+            return ExceptionHelper.handlerException(logger, "文章删除失败", e);
+        }
+
+        return RestResponseBo.ok();
+    }
+
 
 }
