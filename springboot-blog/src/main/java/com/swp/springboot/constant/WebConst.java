@@ -25,6 +25,13 @@ public class WebConst {
      * 点击次数超过多少更新到数据库
      */
     public static final int HIT_EXCEED = 10;
-
+    /**
+     * 最大获取文章条数
+     */
     public static final int MAX_POST_NUMBER = 9999;
+
+    /**
+     * 上传文件最大1M
+     */
+    public static Integer MAX_FILE_SIZE = 1048576;
 }

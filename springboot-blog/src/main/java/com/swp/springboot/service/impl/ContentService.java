@@ -5,18 +5,26 @@ import com.github.pagehelper.PageInfo;
 import com.swp.springboot.dao.ContentVoMapper;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
+import com.swp.springboot.modal.redisKey.ContentKey;
 import com.swp.springboot.modal.vo.ContentVo;
 import com.swp.springboot.modal.vo.ContentVoExample;
 import com.swp.springboot.service.IContentService;
 import com.swp.springboot.service.IMetaService;
+import com.swp.springboot.service.IRelationshipService;
 import com.swp.springboot.util.DateKit;
 import com.swp.springboot.util.MyUtils;
+import com.swp.springboot.util.RedisKeyUtil;
+import com.swp.springboot.util.Tools;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 描述:
@@ -35,6 +43,18 @@ public class ContentService implements IContentService {
     @Resource
     private IMetaService metaService;
 
+    @Resource
+    private IRelationshipService relationshipService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private ValueOperations<String, Object> valueOperations;
+
+    @Autowired
+    private RedisService redisService;
+
     @Override
     public PageInfo<ContentVo> getArticleList(int page, int limit) {
 
@@ -49,12 +69,35 @@ public class ContentService implements IContentService {
     }
 
     @Override
-    public ContentVo getContentByCid(Integer cid) {
-        if (null != cid) {
-            ContentVo contentVo = contentVoMapper.selectByPrimaryKey(cid);
-            return contentVo;
+    public ContentVo getContentByCid(String cid) {
+        String contentKey = RedisKeyUtil.getKey(ContentKey.TABLE_NAME, ContentKey.MAJOR_KEY, cid);
+        ContentVo contentVo = (ContentVo) valueOperations.get(contentKey);
+        if (null == contentVo) {
+            if (StringUtils.isNotBlank(cid)) {
+                if (Tools.isNumber(cid)) {
+                    contentVo = contentVoMapper.selectByPrimaryKey(Integer.valueOf(cid));
+                    if (contentVo != null) {
+                        contentVo.setHits(contentVo.getHits() + 1);
+                        contentVoMapper.updateByPrimaryKey(contentVo);
+                    }
+                    valueOperations.set(contentKey, contentVo);
+                    redisService.expireKey(contentKey, ContentKey.LIVE_TIME, TimeUnit.HOURS);
+                    return contentVo;
+                } else {
+                    ContentVoExample contentVoExample = new ContentVoExample();
+                    contentVoExample.createCriteria().andSlugEqualTo(cid);
+                    List<ContentVo> contentVoList = contentVoMapper.selectByExampleWithBLOBs(contentVoExample);
+                    if (contentVoList.size() != 1) {
+                        throw new TipException("query content by id and return is not one");
+                    }
+                    contentVo = contentVoList.get(0);
+                    valueOperations.set(contentKey, contentVo);
+                    redisService.expireKey(contentKey, ContentKey.LIVE_TIME, TimeUnit.HOURS);
+                    return contentVo;
+                }
+            }
         }
-        return null;
+        return contentVo;
     }
 
     @Override
@@ -111,6 +154,50 @@ public class ContentService implements IContentService {
         System.out.println("cid ===== " + cid);
         metaService.saveMetas(Types.TAG.getType(), tags, cid);
         metaService.saveMetas(Types.CATEGORY.getType(), categories, cid);
+    }
+
+    @Override
+    public void updateArticle(ContentVo contents) {
+        checkContent(contents);
+        if (StringUtils.isNotBlank(contents.getSlug())) {
+            if (contents.getSlug().length() < 5) {
+                throw new TipException("路径太短了");
+            }
+            if (!MyUtils.isSlugPath(contents.getSlug())) {
+                throw new TipException("您输入的路径不合法");
+            }
+        } else {
+            contents.setSlug(null);
+        }
+        contents.setContent(EmojiParser.parseToAliases(contents.getContent()));
+        contents.setModified(DateKit.getCurrentUnixTime());
+        contentVoMapper.updateByPrimaryKeySelective(contents);
+
+        Integer cid = contents.getCid();
+        String key = RedisKeyUtil.getKey(ContentKey.TABLE_NAME, ContentKey.MAJOR_KEY, contents.getSlug());
+        redisService.deleteKey(key);
+
+        relationshipService.deleteById(cid, null);
+        metaService.saveMetas(Types.TAG.getType(), contents.getTags(), cid);
+        metaService.saveMetas(Types.CATEGORY.getType(), contents.getCategories(), cid);
+    }
+
+    @Override
+    public void deleteArticleById(Integer cid) {
+        ContentVo content = this.getContentByCid(cid+"");
+        if (null != content) {
+            contentVoMapper.deleteByPrimaryKey(cid);
+            relationshipService.deleteById(cid, null);
+            String cidKey = RedisKeyUtil.getKey(ContentKey.TABLE_NAME, ContentKey.MAJOR_KEY, cid+"");
+            String slugKey = RedisKeyUtil.getKey(ContentKey.TABLE_NAME, ContentKey.MAJOR_KEY, content.getSlug());
+            if (redisService.existKey(cidKey)) {
+                redisService.deleteKey(cidKey);
+            }
+            if (redisService.existKey(slugKey)) {
+                redisService.deleteKey(cidKey);
+            }
+
+        }
     }
 
     public void checkContent(ContentVo contentVo) {

@@ -36,18 +36,19 @@ $(document).ready(function () {
         }
     });
 
-    if($('#thumb-toggle').attr('thumb_url') != ''){
+    if($('#thumbimg').val() != ''){
         $('#thumb-toggle').toggles({
-            off: true,
+            on: true,
             text: {
                 on: '开启',
                 off: '关闭'
             }
         });
         $('#thumb-toggle').attr('on', 'true');
-        $('#dropzone').css('background-image', 'url('+ $('#thumb-container').attr('thumb_url') +')');
+        $('#dropzone').css('background-image', 'url('+ $('#thumbimg').val() +')');
         $('#dropzone').css('background-size', 'cover');
-        $('#dropzone-container').show();
+        $('#dropzone-container').removeClass('hide');
+        $("#dropzone-container").show();
     } else {
         $('#thumb-toggle').toggles({
             off: true,
@@ -57,7 +58,8 @@ $(document).ready(function () {
             }
         });
         $('#thumb-toggle').attr('on', 'false');
-        $('#dropzone-container').hide();
+        $('#dropzone-container').addClass('hide');
+        $("#dropzone-container").hide();
     }
 
     var thumbdropzone = $('.dropzone');
@@ -201,14 +203,15 @@ function allow_feed(obj) {
 function add_thumbimg(obj) {
     var this_ = $(obj);
     var on = this_.attr('on');
-    console.log(on);
+
     if (on == 'true') {
-        this_.attr('on', 'false');
+        this_.attr('on','false');
         $('#dropzone-container').addClass('hide');
-        $('#thumbImg').val('');
+        $("#dropzone-container").hide();
     } else {
-        this_.attr('on', 'true');
+        this_.attr('on','true');
         $('#dropzone-container').removeClass('hide');
-        $('#dropzone-container').show();
+        $("#dropzone-container").show();
     }
+    console.log(on);
 }

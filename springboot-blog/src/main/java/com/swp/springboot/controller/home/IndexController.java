@@ -46,7 +46,7 @@ public class IndexController extends AbstractController{
     }
 
     @GetMapping(value = {"article/{cid}/preview", "article/{cid}.html"})
-    public String articlePreview(HttpServletRequest request, @PathVariable Integer cid) {
+    public String articlePreview(HttpServletRequest request, @PathVariable String cid) {
         ContentVo content = contentService.getContentByCid(cid);
         if (null == content) {
             return this.render_404();

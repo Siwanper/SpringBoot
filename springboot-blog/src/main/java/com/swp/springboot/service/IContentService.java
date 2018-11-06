@@ -20,7 +20,7 @@ public interface IContentService {
      * @param cid
      * @return
      */
-    ContentVo getContentByCid(Integer cid);
+    ContentVo getContentByCid(String cid);
 
     /**
      * 更新文章的类别和标签
@@ -42,4 +42,16 @@ public interface IContentService {
      * @param contentVo
      */
     void publish(ContentVo contentVo);
+
+    /**
+     * 更新文章
+     * @param contents
+     */
+    void updateArticle(ContentVo contents);
+
+    /**
+     * 删除文章
+     * @param cid
+     */
+    void deleteArticleById(Integer cid);
 }
