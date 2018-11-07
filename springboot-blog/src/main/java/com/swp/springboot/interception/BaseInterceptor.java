@@ -1,6 +1,7 @@
 package com.swp.springboot.interception;
 
 import com.swp.springboot.constant.WebConst;
+import com.swp.springboot.dto.Types;
 import com.swp.springboot.modal.vo.UserVo;
 import com.swp.springboot.util.*;
 import org.slf4j.Logger;
@@ -54,8 +55,12 @@ public class BaseInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // TODO CSRF 处理
-
+        if (request.getMethod().equals("GET")) {
+            String csrf_token = UUID.UU64();
+            // 默认存储30分钟
+            cache.hset(Types.CSRF_TOKEN.getType(), csrf_token, uri, 30 * 60);
+            request.setAttribute("_csrf_token", csrf_token);
+        }
         return true;
     }
 
