@@ -249,4 +249,18 @@ public class Commons {
     public static String emoji(String value) {
         return EmojiParser.parseToUnicode(value);
     }
+
+    /**
+     * 截取字符串长度
+     * @param string
+     * @param len
+     * @return
+     */
+    public static String substr(String string, int len) {
+        if (string.length() > len) {
+            String substring = string.substring(0, len);
+            return substring;
+        }
+        return string;
+    }
 }

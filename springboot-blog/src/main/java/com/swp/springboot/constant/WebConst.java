@@ -34,7 +34,10 @@ public class WebConst {
      * 最大页码
      */
     public static final int MAX_PAGE_NUMBER = 100;
-
+    /**
+     * 文章最多可以输入的文字数
+     */
+    public static final int MAX_TEXT_COUNT = 200000;
 
     /**
      * 上传文件最大1M

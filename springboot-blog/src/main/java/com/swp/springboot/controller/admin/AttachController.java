@@ -1,22 +1,25 @@
 package com.swp.springboot.controller.admin;
 
+import com.github.pagehelper.PageInfo;
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.controller.AbstractController;
+import com.swp.springboot.controller.helper.ExceptionHelper;
+import com.swp.springboot.dto.LogActions;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.bo.RestResponseBo;
 import com.swp.springboot.modal.vo.AttachVo;
 import com.swp.springboot.modal.vo.UserVo;
 import com.swp.springboot.service.IAttachService;
+import com.swp.springboot.service.ILogService;
+import com.swp.springboot.util.Commons;
 import com.swp.springboot.util.MyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -45,6 +48,26 @@ public class AttachController extends AbstractController {
 
     @Resource
     private IAttachService attachService;
+
+    @Resource
+    private ILogService logService;
+    /**
+     * 附件页面
+     * @param request
+     * @param page
+     * @param limit
+     * @return
+     */
+    @GetMapping("")
+    public String index(HttpServletRequest request, @RequestParam(value = "page", defaultValue = "1") int page, @RequestParam(value = "limit", defaultValue = "12") int limit) {
+
+       PageInfo<AttachVo> pageInfo = attachService.getAttachList(page, limit);
+       request.setAttribute("attachs", pageInfo);
+       request.setAttribute(Types.ATTACH_URL.getType(), Commons.site_option(Types.ATTACH_URL.getType()));
+       request.setAttribute("max_file_size", WebConst.MAX_TEXT_COUNT / 1024);
+
+       return "admin/attach";
+    }
 
     /**
      * 上传附件
@@ -82,5 +105,24 @@ public class AttachController extends AbstractController {
         }
         return RestResponseBo.ok(attachVoList);
     }
+
+    /**
+     * 删除附件
+     * @param request
+     * @param id
+     * @return
+     */
+    @PostMapping("delete")
+    @ResponseBody
+    public RestResponseBo delete(HttpServletRequest request, @RequestParam Integer id){
+        try {
+            attachService.deleteAttachById(id);
+            logService.insertLog(LogActions.DEL_ATTACH.getAction(), null, this.getUid(request), request.getRemoteAddr());
+        } catch (Exception e) {
+            return ExceptionHelper.handlerException(logger, "删除失败" ,e );
+        }
+        return RestResponseBo.ok();
+    }
+
 
 }
