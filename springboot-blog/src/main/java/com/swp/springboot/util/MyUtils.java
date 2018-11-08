@@ -10,6 +10,8 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
@@ -37,6 +39,8 @@ import java.util.regex.Pattern;
  * @create 2018-10-25 2:22 PM
  */
 public class MyUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(MyUtils.class);
 
     private static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
@@ -190,6 +194,19 @@ public class MyUtils {
     }
 
     /**
+     * 提取html中的文字
+     *
+     * @param html
+     * @return
+     */
+    public static String htmlToText(String html) {
+        if (StringUtils.isNotBlank(html)) {
+            return html.replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*", " ");
+        }
+        return "";
+    }
+
+    /**
      * markdown转换为html
      *
      * @param markdown
@@ -258,6 +275,24 @@ public class MyUtils {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         return value;
+    }
+
+    /**
+     * 退出登录
+     * @param session
+     * @param response
+     */
+    public static void logout(HttpSession session, HttpServletResponse response) {
+        session.removeAttribute(WebConst.LOGIN_SESSION_KEY);
+        Cookie cookie = new Cookie(WebConst.USER_IN_COOKIE, null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        try {
+            response.sendRedirect(Commons.site_url());
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.error("注销失败", e);
+        }
     }
 
 }

@@ -1,6 +1,8 @@
 package com.swp.springboot.util;
 
+import com.github.pagehelper.PageInfo;
 import com.swp.springboot.constant.WebConst;
+import com.swp.springboot.dto.MetaDto;
 import com.swp.springboot.modal.vo.ContentVo;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.commons.lang3.StringUtils;
@@ -126,6 +128,15 @@ public class Commons {
     }
 
     /**
+     * 判断分页中是否有数据
+     *
+     * @param paginator
+     * @return
+     */
+    public static boolean is_empty(PageInfo paginator) {
+        return paginator == null || (paginator.getList() == null) || (paginator.getList().size() == 0);
+    }
+    /**
      * 显示分类
      *
      * @param categories
@@ -144,6 +155,42 @@ public class Commons {
     }
 
     /**
+     * 显示文章缩略图，顺序为：文章第一张图 -> 随机获取
+     *
+     * @return
+     */
+    public static String show_thumb(ContentVo contents) {
+        if (StringUtils.isNotBlank(contents.getThumbimg())){
+            return contents.getThumbimg();
+        }
+        int cid = contents.getCid();
+        int size = cid % 25;
+        size = size == 0 ? 1 : size;
+        return "/user/img/rand/" + size + ".jpg";
+    }
+
+    /**
+     * 截取文章摘要
+     * @param article
+     * @param len
+     * @return
+     */
+    public static String intro(ContentVo article, int len) {
+        String value = article.getContent();
+        int pos = value.indexOf("<!--more-->");
+        if (pos != -1) {
+            String substring = value.substring(0, pos);
+            return MyUtils.htmlToText(substring);
+        } else {
+            String text = MyUtils.htmlToText(value);
+            if (text.length() > len) {
+                return text.substring(0, len);
+            }
+            return text;
+        }
+    }
+
+    /**
      * 显示标签
      *
      * @param tags
@@ -159,6 +206,22 @@ public class Commons {
             return sbuf.toString();
         }
         return "";
+    }
+
+    public static String showCategoryUrl(MetaDto metaDto){
+        String url = "/category/"+metaDto.getName();
+        return url;
+    }
+
+    private static final String[] ICONS = {"bg-ico-book", "bg-ico-game", "bg-ico-note", "bg-ico-chat", "bg-ico-code", "bg-ico-image", "bg-ico-web", "bg-ico-link", "bg-ico-design", "bg-ico-lock"};
+    /**
+     * 显示文章图标
+     *
+     * @param cid
+     * @return
+     */
+    public static String show_icon(int cid) {
+        return ICONS[cid % ICONS.length];
     }
 
     /**

@@ -3,6 +3,8 @@ package com.swp.springboot.service;
 import com.github.pagehelper.PageInfo;
 import com.swp.springboot.modal.vo.ContentVo;
 
+import java.util.List;
+
 public interface IContentService {
 
     /**
@@ -13,6 +15,16 @@ public interface IContentService {
      * @return
      */
     PageInfo<ContentVo> getArticleList(int page, int limit);
+
+    /**
+     * 根据分类获取文章
+     *
+     * @param mid
+     * @param page
+     * @param limit
+     * @return
+     */
+    PageInfo<ContentVo> getArticleList(Integer mid, int page, int limit);
 
     /**
      * 获取文章

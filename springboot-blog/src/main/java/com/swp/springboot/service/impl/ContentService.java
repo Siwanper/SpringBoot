@@ -3,6 +3,7 @@ package com.swp.springboot.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.swp.springboot.dao.ContentVoMapper;
+import com.swp.springboot.dao.MetaVoMapper;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.redisKey.ContentKey;
@@ -44,6 +45,9 @@ public class ContentService implements IContentService {
     private IMetaService metaService;
 
     @Resource
+    private MetaVoMapper metaVoMapper;
+
+    @Resource
     private IRelationshipService relationshipService;
 
     @Autowired
@@ -66,6 +70,16 @@ public class ContentService implements IContentService {
         List<ContentVo> contentVos = contentVoMapper.selectByExampleWithBLOBs(example);
 
         return new PageInfo<>(contentVos);
+    }
+
+    @Override
+    public PageInfo<ContentVo> getArticleList(Integer mid, int page, int limit) {
+        int total = metaVoMapper.countWithSql(mid);
+        PageHelper.startPage(page, limit);
+        List<ContentVo> list = contentVoMapper.findByCatelog(mid);
+        PageInfo<ContentVo> pageInfo = new PageInfo<>(list);
+        pageInfo.setTotal(total);
+        return pageInfo;
     }
 
     @Override

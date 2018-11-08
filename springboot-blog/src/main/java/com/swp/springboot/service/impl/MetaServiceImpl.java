@@ -150,6 +150,14 @@ public class MetaServiceImpl implements IMetaService {
     }
 
     @Override
+    public MetaDto getMeta(String type, String name) {
+        if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(name)) {
+            return metaVoMapper.selectDtoByNameAndType(name, type);
+        }
+        return null;
+    }
+
+    @Override
     public void delete(Integer mid) {
 
         MetaVo metaVo = metaVoMapper.selectByPrimaryKey(mid);

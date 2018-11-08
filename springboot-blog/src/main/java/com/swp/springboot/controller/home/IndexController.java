@@ -4,14 +4,17 @@ import com.github.pagehelper.PageInfo;
 import com.swp.springboot.constant.WebConst;
 import com.swp.springboot.controller.AbstractController;
 import com.swp.springboot.controller.helper.ExceptionHelper;
+import com.swp.springboot.dto.MetaDto;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.bo.CommentBo;
 import com.swp.springboot.modal.bo.RestResponseBo;
 import com.swp.springboot.modal.vo.CommentVo;
 import com.swp.springboot.modal.vo.ContentVo;
+import com.swp.springboot.modal.vo.MetaVo;
 import com.swp.springboot.service.ICommentService;
 import com.swp.springboot.service.IContentService;
+import com.swp.springboot.service.IMetaService;
 import com.swp.springboot.util.IpUtil;
 import com.swp.springboot.util.MyUtils;
 import com.swp.springboot.util.PatternKit;
@@ -27,8 +30,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.List;
 
 /**
  * 描述:
@@ -48,94 +53,43 @@ public class IndexController extends AbstractController{
     @Resource
     private ICommentService commentService;
 
-    @RequestMapping("/")
-    @ResponseBody
-    public String index(){
-        return "博客首页";
+    @Resource
+    private IMetaService metaService;
+
+    /**
+     * 博客首页
+     *
+     * @param request
+     * @param limit
+     * @return
+     */
+    @GetMapping("/")
+    public String index(HttpServletRequest request, @RequestParam(value = "limit", defaultValue = "10") int limit){
+        return index(request, 1, limit);
+    }
+
+    @GetMapping(value = "page/{page}")
+    public String index(HttpServletRequest request, @PathVariable int page, @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        // 开启thymeleaf缓存，加快访问速度
+        page = page < 0 || page > WebConst.MAX_PAGE_NUMBER ? 1 : page;
+        PageInfo<ContentVo> articleList = contentService.getArticleList(page, limit);
+        List<MetaDto> metaList = metaService.getMetaList(Types.CATEGORY.getType(), null, WebConst.MAX_POST_NUMBER);
+        request.setAttribute("articles", articleList);
+        request.setAttribute("categories", metaList);
+        if (page > 1) {
+            this.title(request, "第"+page+"页");
+        }
+        return this.render("index");
     }
 
     /**
-     * 评论操作
-     * @param request
+     * 退出登录
+     *
      * @param response
-     * @param cid
-     * @param coid
-     * @param text
-     * @param author
-     * @param mail
-     * @param url
-     * @param _csrf_token
-     * @return
+     * @param session
      */
-    @PostMapping("comment")
-    @ResponseBody
-    @Transactional(rollbackFor = TipException.class)
-    public RestResponseBo comment(HttpServletRequest request, HttpServletResponse response,
-                                  @RequestParam Integer cid, @RequestParam Integer coid, @RequestParam String text,
-                                  @RequestParam String author, @RequestParam String mail, @RequestParam String url,
-                                  @RequestParam String _csrf_token) {
-        String ref = request.getHeader("Referer");
-        System.out.println("referer : " + ref);
-        if (StringUtils.isBlank(ref) || StringUtils.isBlank(_csrf_token)) {
-            return RestResponseBo.fail("Bad request");
-        }
-        String token = cache.hget(Types.CSRF_TOKEN.getType(), _csrf_token);
-        if (StringUtils.isBlank(token)) {
-            return RestResponseBo.fail("Bad request");
-        }
-        if ( null == cid || StringUtils.isBlank(text)) {
-            return RestResponseBo.fail("请输入评论内容");
-        }
-        if (StringUtils.isNotBlank(author) && author.length() > 50) {
-            return RestResponseBo.fail("姓名过长");
-        }
-        if (StringUtils.isNotBlank(mail) && !MyUtils.isEmail(mail)) {
-            return RestResponseBo.fail("请输入正确的邮箱格式");
-        }
-        if (StringUtils.isNotBlank(url) && !PatternKit.isURL(url)) {
-            return RestResponseBo.fail("请输入正确的URL格式");
-        }
-        if (text.length() > 200) {
-            return RestResponseBo.fail("请输入200个字符之内的评论内容");
-        }
-
-        String val = IpUtil.getIpAddrByRequest(request) + ":" + cid;
-        Integer count = cache.hget(Types.COMMENTS_FREQUENCY.getType(), val);
-        if (null != count && count > 0) {
-            return RestResponseBo.fail("请发表的评论太快了，请稍后尝试");
-        }
-
-        // 去除js脚本
-        author = MyUtils.cleanXSS(author);
-        text = MyUtils.cleanXSS(text);
-
-        author = EmojiParser.parseToAliases(author);
-        text = EmojiParser.parseToAliases(text);
-
-        CommentVo comments = new CommentVo();
-        comments.setAuthor(author);
-        comments.setCid(cid);
-        comments.setIp(request.getRemoteAddr());
-        comments.setUrl(url);
-        comments.setMail(mail);
-        comments.setParent(coid);
-        comments.setContent(text);
-
-        try {
-            commentService.insertComment(comments);
-
-            cookie("tale_remember_author", URLEncoder.encode(author, "UTF-8"), 7 * 24 * 60 * 60, response);
-            cookie("tale_remember_mail", URLDecoder.decode(mail, "UTF-8"), 7 * 24 * 60 * 60, response);
-            if (StringUtils.isNotBlank(url)) {
-                cookie("tale_remember_author", URLEncoder.encode(author, "UTF-8"), 7 * 24 * 60 * 60, response);
-            }
-
-            cache.hset(Types.COMMENTS_FREQUENCY.getType(), val, 1 , 60);
-        } catch (Exception e) {
-            return ExceptionHelper.handlerException(logger, "评论发布失败", e);
-        }
-
-        return RestResponseBo.ok();
+    public void logout(HttpServletResponse response, HttpSession session) {
+        MyUtils.logout(session, response);
     }
 
     /**
@@ -228,5 +182,118 @@ public class IndexController extends AbstractController{
         cookie.setSecure(false);
         response.addCookie(cookie);
     }
+
+    /**
+     * 评论操作
+     * @param request
+     * @param response
+     * @param cid
+     * @param coid
+     * @param text
+     * @param author
+     * @param mail
+     * @param url
+     * @param _csrf_token
+     * @return
+     */
+    @PostMapping("comment")
+    @ResponseBody
+    @Transactional(rollbackFor = TipException.class)
+    public RestResponseBo comment(HttpServletRequest request, HttpServletResponse response,
+                                  @RequestParam Integer cid, @RequestParam Integer coid, @RequestParam String text,
+                                  @RequestParam String author, @RequestParam String mail, @RequestParam String url,
+                                  @RequestParam String _csrf_token) {
+        String ref = request.getHeader("Referer");
+        System.out.println("referer : " + ref);
+        if (StringUtils.isBlank(ref) || StringUtils.isBlank(_csrf_token)) {
+            return RestResponseBo.fail("Bad request");
+        }
+        String token = cache.hget(Types.CSRF_TOKEN.getType(), _csrf_token);
+        if (StringUtils.isBlank(token)) {
+            return RestResponseBo.fail("Bad request");
+        }
+        if ( null == cid || StringUtils.isBlank(text)) {
+            return RestResponseBo.fail("请输入评论内容");
+        }
+        if (StringUtils.isNotBlank(author) && author.length() > 50) {
+            return RestResponseBo.fail("姓名过长");
+        }
+        if (StringUtils.isNotBlank(mail) && !MyUtils.isEmail(mail)) {
+            return RestResponseBo.fail("请输入正确的邮箱格式");
+        }
+        if (StringUtils.isNotBlank(url) && !PatternKit.isURL(url)) {
+            return RestResponseBo.fail("请输入正确的URL格式");
+        }
+        if (text.length() > 200) {
+            return RestResponseBo.fail("请输入200个字符之内的评论内容");
+        }
+
+        String val = IpUtil.getIpAddrByRequest(request) + ":" + cid;
+        Integer count = cache.hget(Types.COMMENTS_FREQUENCY.getType(), val);
+        if (null != count && count > 0) {
+            return RestResponseBo.fail("请发表的评论太快了，请稍后尝试");
+        }
+
+        // 去除js脚本
+        author = MyUtils.cleanXSS(author);
+        text = MyUtils.cleanXSS(text);
+
+        author = EmojiParser.parseToAliases(author);
+        text = EmojiParser.parseToAliases(text);
+
+        CommentVo comments = new CommentVo();
+        comments.setAuthor(author);
+        comments.setCid(cid);
+        comments.setIp(request.getRemoteAddr());
+        comments.setUrl(url);
+        comments.setMail(mail);
+        comments.setParent(coid);
+        comments.setContent(text);
+
+        try {
+            commentService.insertComment(comments);
+
+            cookie("tale_remember_author", URLEncoder.encode(author, "UTF-8"), 7 * 24 * 60 * 60, response);
+            cookie("tale_remember_mail", URLDecoder.decode(mail, "UTF-8"), 7 * 24 * 60 * 60, response);
+            if (StringUtils.isNotBlank(url)) {
+                cookie("tale_remember_author", URLEncoder.encode(author, "UTF-8"), 7 * 24 * 60 * 60, response);
+            }
+
+            cache.hset(Types.COMMENTS_FREQUENCY.getType(), val, 1 , 60);
+        } catch (Exception e) {
+            return ExceptionHelper.handlerException(logger, "评论发布失败", e);
+        }
+
+        return RestResponseBo.ok();
+    }
+
+    /**
+     * 分类页
+     *
+     * @param request
+     * @param keyword
+     * @param limit
+     * @return
+     */
+    @GetMapping(value = "category/{keyword}")
+    public String categories(HttpServletRequest request, @PathVariable String keyword, @RequestParam(value = "limit", defaultValue = "12") int limit) {
+        return this.categories(request, keyword, 1, limit);
+    }
+
+    @RequestMapping("category/{keyword}/{page}")
+    public String categories(HttpServletRequest request, @PathVariable String keyword, @PathVariable int page, @RequestParam(value = "limit", defaultValue = "12") int limit) {
+        page = page < 0 || page > WebConst.MAX_PAGE_NUMBER ? 1 : page;
+        MetaDto metaDto = metaService.getMeta(Types.CATEGORY.getType(), keyword);
+        if (null == metaDto) {
+            return this.render_404();
+        }
+        PageInfo<ContentVo> articleList = contentService.getArticleList(metaDto.getMid(), page, limit);
+        request.setAttribute("articles", articleList);
+        request.setAttribute("meta", metaDto);
+        request.setAttribute("type", "分类");
+        request.setAttribute("keyword", keyword);
+        return this.render("page-category");
+    }
+
 
 }

@@ -44,9 +44,19 @@ public interface IMetaService {
     List<MetaVo> getMetaByType(String type);
 
     /**
+     * 根据类型和名字查询项
+     *
+     * @param type
+     * @param name
+     * @return
+     */
+    MetaDto getMeta(String type, String name);
+
+    /**
      * 删除分类或标签
      *
      * @param mid
      */
     void delete(Integer mid);
+
 }

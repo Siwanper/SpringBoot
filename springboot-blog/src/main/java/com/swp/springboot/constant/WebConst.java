@@ -31,6 +31,12 @@ public class WebConst {
     public static final int MAX_POST_NUMBER = 9999;
 
     /**
+     * 最大页码
+     */
+    public static final int MAX_PAGE_NUMBER = 100;
+
+
+    /**
      * 上传文件最大1M
      */
     public static Integer MAX_FILE_SIZE = 1048576;

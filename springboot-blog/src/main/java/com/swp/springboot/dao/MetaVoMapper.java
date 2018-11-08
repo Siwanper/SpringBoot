@@ -33,4 +33,7 @@ public interface MetaVoMapper {
 
     List<MetaDto> selectFromSql(Map<String, Object> paraMap);
 
+    MetaDto selectDtoByNameAndType(@Param("name") String name, @Param("type") String type);
+
+    int countWithSql(Integer mid);
 }
