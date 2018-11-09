@@ -26,6 +26,19 @@ public interface IMetaService {
     void saveMeta(String type, String name, Integer mid);
 
     /**
+     * 保存分类和标签
+     *
+     * @param metaVo
+     */
+    void saveMeta(MetaVo metaVo);
+
+    /**
+     * 更新分类和标签
+     * @param metaVo
+     */
+    void updateMeta(MetaVo metaVo);
+
+    /**
      * 获取分类和标签列表，包含文章个数
      *
      * @param type 分类或者标签

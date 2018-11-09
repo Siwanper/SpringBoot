@@ -1,7 +1,9 @@
 package com.swp.springboot.constant;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 描述:
@@ -43,4 +45,11 @@ public class WebConst {
      * 上传文件最大1M
      */
     public static Integer MAX_FILE_SIZE = 1048576;
+
+    /**
+     * 要过滤的ip列表
+     */
+    public static Set<String> BLOCK_IPS = new HashSet<>(16);
+
+
 }

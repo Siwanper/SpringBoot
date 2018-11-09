@@ -121,6 +121,20 @@ public class MetaServiceImpl implements IMetaService {
     }
 
     @Override
+    public void saveMeta(MetaVo metaVo) {
+        if (null != metaVo) {
+            metaVoMapper.insertSelective(metaVo);
+        }
+    }
+
+    @Override
+    public void updateMeta(MetaVo metaVo) {
+        if (null != metaVo && null != metaVo.getMid()) {
+            metaVoMapper.updateByPrimaryKeySelective(metaVo);
+        }
+    }
+
+    @Override
     public List<MetaDto> getMetaList(String type, String order, int limit) {
         if (StringUtils.isNotBlank(type)) {
             if (StringUtils.isBlank(order)) {
@@ -143,6 +157,7 @@ public class MetaServiceImpl implements IMetaService {
         if (null != type) {
             MetaVoExample example = new MetaVoExample();
             example.createCriteria().andTypeEqualTo(type);
+            example.setOrderByClause("sort desc, mid desc");
             List<MetaVo> metaVos = metaVoMapper.selectByExample(example);
             return metaVos;
         }
