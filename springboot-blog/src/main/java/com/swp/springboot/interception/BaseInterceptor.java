@@ -66,8 +66,10 @@ public class BaseInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        // TODO IP黑名单
-        // TODO 统一链接处理
+        String ip = IpUtil.getIpAddrByRequest(request);
+        if (WebConst.BLOCK_IPS.contains(ip)) {
+            modelAndView.setViewName("common/ipban");
+        }
 
         request.setAttribute("commons", commons);
         request.setAttribute("adminCommons", adminCommons);

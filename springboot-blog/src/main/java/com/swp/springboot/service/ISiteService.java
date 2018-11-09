@@ -1,5 +1,6 @@
 package com.swp.springboot.service;
 
+import com.swp.springboot.modal.bo.BackupResponseBo;
 import com.swp.springboot.modal.bo.StaticticsBo;
 import com.swp.springboot.modal.vo.CommentVo;
 import com.swp.springboot.modal.vo.ContentVo;
@@ -36,5 +37,15 @@ public interface ISiteService {
      * @return
      */
     public StaticticsBo getStatictics();
+
+    /**
+     * 系统备份
+     * @param bk_type
+     * @param bk_path
+     * @param fmt
+     * @return
+     */
+    public BackupResponseBo backup(String bk_type, String bk_path, String fmt) throws Exception;
+
 
 }

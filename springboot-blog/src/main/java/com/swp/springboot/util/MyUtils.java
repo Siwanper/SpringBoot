@@ -1,6 +1,7 @@
 package com.swp.springboot.util;
 
 import com.swp.springboot.constant.WebConst;
+import com.swp.springboot.exception.TipException;
 import com.swp.springboot.modal.vo.UserVo;
 import org.apache.commons.lang3.StringUtils;
 import org.commonmark.Extension;
@@ -12,22 +13,22 @@ import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +42,10 @@ import java.util.regex.Pattern;
 public class MyUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(MyUtils.class);
+
+    private static DataSource dataSource;
+
+    private static ReentrantLock lock = new ReentrantLock();
 
     private static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
@@ -293,6 +298,54 @@ public class MyUtils {
             e.printStackTrace();
             logger.error("注销失败", e);
         }
+    }
+
+    /**
+     * 获取随机数
+     *
+     * @param size
+     * @return
+     */
+    public static String getRandomNumber(int size) {
+        String num = "";
+        for (int i = 0; i < size; i++) {
+            double a = Math.random() * 9.0D;
+            a = Math.ceil(a);
+            int randomNum = (new Double(a)).intValue();
+            num = num + randomNum;
+        }
+        return num;
+    }
+
+    public static DataSource getNewDataSource() {
+        lock.lock();
+        if (dataSource == null) {
+            Properties properties = MyUtils.getPropFromFile("classpath:application-jdbc.properties");
+            if (properties.size() == 0) {
+                return dataSource;
+            }
+            DriverManagerDataSource managerDataSource = new DriverManagerDataSource();
+            managerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
+            managerDataSource.setPassword(properties.getProperty("spring.datasource.password"));
+            String str = "jdbc:mysql://" + properties.getProperty("spring.datasource.url") + "/" + properties.getProperty("spring.datasource.dbname") + "?useUnicode=true&characterEncoding=utf-8&useSSL=false";
+            managerDataSource.setUrl(str);
+            managerDataSource.setUsername(properties.getProperty("spring.datasource.username"));
+            dataSource = managerDataSource;
+        }
+        return dataSource;
+    }
+
+    public static Properties getPropFromFile(String filename) {
+        Properties properties = new Properties();
+        if (StringUtils.isNotBlank(filename)) {
+            try {
+                FileInputStream inputStream = new FileInputStream(filename);
+                properties.load(inputStream);
+            }  catch (IOException | TipException e) {
+                logger.error("get properties file fail={}" ,e.getMessage());
+            }
+        }
+        return properties;
     }
 
 }
