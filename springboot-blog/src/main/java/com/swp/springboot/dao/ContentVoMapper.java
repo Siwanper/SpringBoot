@@ -1,5 +1,6 @@
 package com.swp.springboot.dao;
 
+import com.swp.springboot.modal.bo.ArchiveBo;
 import com.swp.springboot.modal.vo.ContentVo;
 import com.swp.springboot.modal.vo.ContentVoExample;
 import java.util.List;
@@ -37,4 +38,6 @@ public interface ContentVoMapper {
     int updateByPrimaryKey(ContentVo record);
 
     List<ContentVo> findByCatelog(Integer mid);
+
+    List<ArchiveBo> findRetureArchivesBo();
 }

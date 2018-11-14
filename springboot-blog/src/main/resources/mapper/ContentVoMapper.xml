@@ -469,4 +469,12 @@
     order by a.created desc
   </select>
 
+  <resultMap id="archiveBoMap" type="com.swp.springboot.modal.bo.ArchiveBo">
+    <id column="date" property="date"/>
+    <result column="count" property="count"/>
+  </resultMap>
+  <select id="findRetureArchivesBo" resultMap="archiveBoMap">
+    select FROM_UNIXTIME(created, '%Y年%m月') as date ,count(*) count from t_contents where type='post' and status='publish' group  by date  order by date desc ;
+  </select>
+
 </mapper>

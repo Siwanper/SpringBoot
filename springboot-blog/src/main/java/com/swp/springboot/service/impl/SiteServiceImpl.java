@@ -7,6 +7,7 @@ import com.swp.springboot.dao.ContentVoMapper;
 import com.swp.springboot.dao.MetaVoMapper;
 import com.swp.springboot.dto.Types;
 import com.swp.springboot.exception.TipException;
+import com.swp.springboot.modal.bo.ArchiveBo;
 import com.swp.springboot.modal.bo.BackupResponseBo;
 import com.swp.springboot.modal.bo.StaticticsBo;
 import com.swp.springboot.modal.vo.*;
@@ -104,6 +105,26 @@ public class SiteServiceImpl implements ISiteService {
         staticticsBo.setAttachs(attachs);
         staticticsBo.setLinks(links);
         return staticticsBo;
+    }
+
+    @Override
+    public List<ArchiveBo> getArchives() {
+        List<ArchiveBo> archiveBos = contentVoDao.findRetureArchivesBo();
+        if (null != archiveBos) {
+            archiveBos.forEach(archiveBo -> {
+                ContentVoExample example = new ContentVoExample();
+                ContentVoExample.Criteria criteria = example.createCriteria().andTypeEqualTo(Types.ARTICLE.getType()).andStatusEqualTo(Types.PUBLISH.getType());
+                String date = archiveBo.getDate();
+                Date sd = DateKit.dateFormat(date, "yyyy年MM月");
+                int startDate = DateKit.getUnixTimeByDate(sd);
+                int endDate = DateKit.getUnixTimeByDate(DateKit.dateAdd(DateKit.INTERVAL_MONTH, sd, 1)) - 1;
+                criteria.andCreatedGreaterThan(startDate);
+                criteria.andCreatedLessThanOrEqualTo(endDate);
+                List<ContentVo> contentVoList = contentVoDao.selectByExample(example);
+                archiveBo.setArticles(contentVoList);
+            });
+        }
+        return archiveBos;
     }
 
     @Override

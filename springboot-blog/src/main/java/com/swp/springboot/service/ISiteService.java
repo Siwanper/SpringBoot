@@ -1,5 +1,6 @@
 package com.swp.springboot.service;
 
+import com.swp.springboot.modal.bo.ArchiveBo;
 import com.swp.springboot.modal.bo.BackupResponseBo;
 import com.swp.springboot.modal.bo.StaticticsBo;
 import com.swp.springboot.modal.vo.CommentVo;
@@ -37,6 +38,12 @@ public interface ISiteService {
      * @return
      */
     public StaticticsBo getStatictics();
+
+    /**
+     * 获取文章归档
+     * @return
+     */
+    List<ArchiveBo> getArchives();
 
     /**
      * 系统备份

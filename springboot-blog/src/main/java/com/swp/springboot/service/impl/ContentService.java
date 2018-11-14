@@ -83,6 +83,20 @@ public class ContentService implements IContentService {
     }
 
     @Override
+    public PageInfo<ContentVo> getArticleList(String keyword, int page, int limit) {
+        ContentVoExample example = new ContentVoExample();
+        example.setOrderByClause("created desc");
+        ContentVoExample.Criteria criteria = example.createCriteria();
+        criteria.andTypeEqualTo(Types.ARTICLE.getType());
+        criteria.andStatusEqualTo(Types.PUBLISH.getType());
+        criteria.andTitleLike("%" + keyword + "%");
+        PageHelper.startPage(page, limit);
+        List<ContentVo> contentVos = contentVoMapper.selectByExampleWithBLOBs(example);
+        PageInfo<ContentVo> pageInfo = new PageInfo<>(contentVos);
+        return pageInfo;
+    }
+
+    @Override
     public ContentVo getContentByCid(String cid) {
         String contentKey = RedisKeyUtil.getKey(ContentKey.TABLE_NAME, ContentKey.MAJOR_KEY, cid);
         ContentVo contentVo = (ContentVo) valueOperations.get(contentKey);

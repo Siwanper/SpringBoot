@@ -27,6 +27,15 @@ public interface IContentService {
     PageInfo<ContentVo> getArticleList(Integer mid, int page, int limit);
 
     /**
+     * 搜索文章
+     * @param keyword
+     * @param page
+     * @param limit
+     * @return
+     */
+    PageInfo<ContentVo> getArticleList(String keyword, int page, int limit);
+
+    /**
      * 获取文章
      *
      * @param cid
