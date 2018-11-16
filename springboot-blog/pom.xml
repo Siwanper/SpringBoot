@@ -6,7 +6,7 @@
 	<groupId>com.swp</groupId>
 	<artifactId>springboot-blog</artifactId>
 	<version>1.0</version>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 
 	<name>springboot-blog</name>
 	<description>My Springboot Blog</description>

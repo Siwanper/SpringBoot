@@ -96,7 +96,11 @@ public class SettingController extends AbstractController {
 
             WebConst.initConfig = query;
             if (StringUtils.isNotBlank(site_theme)) {
-                AbstractController.THEME = "themes/" + site_theme;
+                if (site_theme.equals("default")) {
+                    AbstractController.THEME = "themes/siwanper";
+                } else {
+                    AbstractController.THEME = "themes/" + site_theme;
+                }
             }
             logService.insertLog(LogActions.SYS_SETTING.getAction(), GsonUtils.toJson(query) , this.getUid(request), request.getRemoteAddr());
             return RestResponseBo.ok();
